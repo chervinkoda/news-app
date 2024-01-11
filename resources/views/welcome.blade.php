@@ -109,7 +109,7 @@
         }
 
         function pinItem(title, url, publicationDate, articleId) {
-            axios.post('/api/pin-item', {
+            axios.post('/api/pinned-articles', {
                     title: title,
                     url: url,
                     date_published: publicationDate,
@@ -131,7 +131,7 @@
         }
 
         function unpinItem(id) {
-            axios.delete(`/api/unpin-item/${id}`)
+            axios.delete(`/api/pinned-articles/${id}`)
                 .then(response => {
                     console.log(response.data);
                     if (response.data.success) {

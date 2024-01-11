@@ -9,14 +9,17 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Config;
 use App\Services\ApiService;
+use App\Services\PinnedItemsService;
 
 class ArticleController extends Controller
 {
     protected $apiService;
+    protected $pinnedItemsService;
 
-    public function __construct(ApiService $apiService)
+    public function __construct(ApiService $apiService, PinnedItemsService $pinnedItemsService)
     {
         $this->apiService = $apiService;
+        $this->pinnedItemsService = $pinnedItemsService;
     }
 
     /**
@@ -25,10 +28,10 @@ class ArticleController extends Controller
     public function index(Request $request)
     {
         $values = $request->query->all();
-        $pinnedArticles = PinnedArticle::all();
         $search = isset($values["search"]) ? $values["search"] : '';
         $page = $request->query('page', 1);
 
+        $pinnedArticles =  $this->pinnedItemsService->fetchData();
         $data = $this->apiService->searchGuardianArticle($search, $page);
         $articles = $data['response']['results'];
         $currentPage = $data['response']['currentPage'];
@@ -36,39 +39,4 @@ class ArticleController extends Controller
 
         return view('welcome', compact('articles', 'page', 'search', 'currentPage', 'pages', 'pinnedArticles'));
     }
-
-    public function pinItem(Request $request)
-    {
-        try {
-            $article = PinnedArticle::where('article_id', $request["article_id"])->first();
-            $request->validate([
-                'title' => [
-                    'required',
-                    'string',
-                    Rule::unique('pinned_articles')->ignore($article->article_id ?? null),
-                ],
-                'url' => 'required|string',
-                'date_published' => 'required|string',
-
-            ]);
-
-            PinnedArticle::create($request->only(['title', 'url', 'date_published', 'article_id']));
-            return response()->json(['success' => true]);
-        } catch (Exception $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()]);
-        }
-
-    }
-
-    public function unpinItem($id)
-    {
-        try {
-            $pinnedArticle = PinnedArticle::find($id);
-            $pinnedArticle->delete();
-            return response()->json(['success' => true]);
-        } catch (Exception $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()]);
-        }
-    }
-
 }

@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\PinnedItemController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,5 +20,6 @@ use App\Http\Controllers\ArticleController;
 //     return $request->user();
 // });
 
-Route::post('/pin-item', [ArticleController::class, 'pinItem']);
-Route::delete('/unpin-item/{id}', [ArticleController::class, 'unpinItem']);
+Route::resource('pinned-articles', PinnedItemController::class)->only([
+    'index', 'store', 'destroy'
+]);
